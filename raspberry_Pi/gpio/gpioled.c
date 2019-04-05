@@ -35,6 +35,8 @@ int ledControl(int gpio)
 	fd = open(buf, O_WRONLY);
 	write(fd, "1", 2);
 	close(fd);
+	
+	sleep(1);
 
 	fd = open("/sys/class/gpio/unexport", O_WRONLY);
 	sprintf(buf, "%d", gpio);
@@ -59,7 +61,6 @@ int main(int argc, char** argv)
 		{
 			gno = atoi(argv[i]);	
 			ledControl(gno);
-			sleep(1);
 		}
 		num--;
 	}
