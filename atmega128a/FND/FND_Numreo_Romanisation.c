@@ -1,0 +1,37 @@
+/*
+ * FND_Numreo_Romanisation.c
+ *
+ * Created: 2019-04-12 오전 10:56:09
+ * Author : tlgus
+ */ 
+
+#include <avr/io.h>
+#define F_CPU 16000000
+#include <util/delay.h>
+
+int main(void)
+{
+	DDRC = 0xFF;
+	DDRG = 0xff;
+	PORTG = 0x01;
+	int num[10] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x27, 0x7F, 0x6F};
+	int roman[21] = {0x5F, 0x7C, 0x58, 0x5e, 0x7B, 0x71, 0x6F, 0x74, 0x30, 0x0E, 0x38, 0x54, 0x5C,0x73, 0x67, 0x50,0x6D, 0x78, 0x1C, 0x66,0x5B};  
+	int i;
+    /* Replace with your application code */
+    while (1) 
+    {
+		for(i=0;i<10;i++)
+		{
+			PORTC = num[i];
+			_delay_ms(500);
+		}
+		
+		for(i=0;i<21;i++)
+		{
+			PORTC = roman[i];
+			_delay_ms(500);
+		}
+		
+    }
+}
+

@@ -21,12 +21,13 @@ int switchControl()
 		{
 			digitalWrite(LED+cnt, LOW);
 			cnt++;
+			digitalWrite(LED+cnt, HIGH);
 			if(cnt==4)
 				cnt = 0;
 			while(digitalRead(SW) == LOW);
 			delay(30);
+		
 		}
-		digitalWrite(LED+cnt, HIGH);
 
 	}
 	
