@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 		exit(0);
 	}
 	
-	if((fd1=open(argv[1], O_RDONLY) == -1))
+	if((fd1=open(argv[1], O_RDONLY)) == -1)
 	{
 		perror(argv[1]);
 		exit(2);
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 		exit(3);
 	}
 
-	while((n==read(fd1, buf, BUFSIZ)) > 0)
+	while((n=read(fd1, buf, BUFSIZ)) > 0)
 		write(fd2, buf, n);
 	exit(0);
 }
