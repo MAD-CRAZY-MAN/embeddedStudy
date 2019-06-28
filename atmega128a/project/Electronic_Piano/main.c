@@ -107,7 +107,7 @@ void PIANO_RECORD(void)
 	unsigned char message[] = "Recording...";
 	unsigned char message2[] = "COMPLETE!";
 	int mode = 1;
-	PORTE = 0x01;
+	PORTB = 0x01;
 	COMMAND(ALLCLR);
 	
 	MOVE(1, 4);
@@ -229,14 +229,14 @@ void PIANO_RECORD(void)
 	}
 	maxCnt = Cnt;
 	maxCnt = Cnt;
-	PORTE = 0x00;
+	PORTB = 0x00;
 	INTRODUCE(2);
 }
 
 void LISTEN(void)
 {
 	unsigned char message[] = "Listening...";
-	unsigned char _end[] = "END!";
+	unsigned char _end[] = "End of Play!";
 	unsigned char empty[] = "Record Empty!!";
 	
 	int mode = 1;
@@ -262,17 +262,8 @@ void LISTEN(void)
 			{
 				COMMAND(ALLCLR);
 				MOVE(1,1);
-				STRING(_end, 4);
-				STRING(_end, 4);
-				STRING(_end, 4);
-				STRING(_end, 4);
-				
-				MOVE(2,1);
-				STRING(_end, 4);
-				STRING(_end, 4);
-				STRING(_end, 4);
-				STRING(_end, 4);
-				_delay_ms(1000);
+				STRING(_end, 12);
+				_delay_ms(1500);
 				break;
 			}
 		}
@@ -415,7 +406,6 @@ void INTRODUCE(int num)
 			STRING(start, 11);
 		}
 }
-
 void PIANO_PLAY(void)
 {		
 	if(flag1)
@@ -502,7 +492,7 @@ void IO_SETTING(void)
 {
 	DDRD = 0xFF; //LCD lines output
 	DDRC = 0x00; //SW lines input
-	DDRE = 0xFF; //LED lines output
+	DDRB = 0xFF; //LED lines output
 	PORTC = 0x00;
 	int iCnt;
 	unsigned int pName[] =
@@ -514,6 +504,7 @@ void IO_SETTING(void)
 	for(iCnt=0;iCnt<8;iCnt++)
 		DATA(pName[iCnt]);
 }
+
 
 
 
