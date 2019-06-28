@@ -7,7 +7,9 @@
 
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include "lcd.h"
+#include "CHAR_FND.h"
 
 void DISPLAY_SHIFT(char p);
 void IO_SETTING(void);
@@ -16,19 +18,26 @@ void PIANO_PLAY(void);
 void MENU(void);
 void PIANO_RECORD(void);
 void LISTEN(void);
-
+void TIMER_SETTING(void);
+void OFF_FND(void);
 
 int flag1 = 0, flag2 = 0, flag3 = 0, flag4 = 0, flag5 =0;
 int maxCnt = 0;
 
+int min = 0, sec = 0, ms = 0;
+int num[10] = {_0_, _1_, _2_, _3_, _4_, _5_, _6_, _7_, _8_, _9_};
+int fndChk = -1;
+	
 unsigned int recordTime[200] = {};
 unsigned int recordWhat[200] = {};
+
 
 int main(void)
 {
 	/* Replace with your application code */
 	IO_SETTING();
 	LCD_INIT();
+	TIMER_SETTING();
 	INTRODUCE(0);		
 
 	while (1)
@@ -43,6 +52,59 @@ int main(void)
 			INTRODUCE(1);
 		}		
 	}
+}
+
+ISR(TIMER0_OVF_vect)
+{
+	ms++;
+	fndChk++;
+	fndChk %= 4;
+	
+	if(ms == 1000)
+	{
+		ms = 0;
+		sec++;
+	}
+	
+	if(sec == 60)
+	{
+		sec = 0;
+		min ++;
+	}
+	if(min == 10)
+	{
+		min = 0;
+	}
+	
+	if(fndChk==0)
+	{
+		PORTF = 0x08;
+		PORTE = num[min] & 0x7F;
+	}
+	else if(fndChk==1)
+	{
+		PORTF = 0x04;
+		PORTE = num[(sec-sec%10)/10];
+	}
+	else if (fndChk==2)
+	{
+		PORTF = 0x02;
+		PORTE = num[sec%10] & 0x7F;
+	}
+	else if(fndChk==3)
+	{
+		PORTF = 0x01;
+		PORTE = num[ms/100];
+	}
+
+	TCNT0 = 0x04;
+}
+
+void TIMER_SETTING(void)
+{
+	TCCR0 = 0x04; // 클럭의 분주비를 64로 설정한다. 16000000 / 64 = 250000UL
+	TCNT0 = 0x04; //Timer/Counter 레지스터의 초기값을 4로 설정한다. 4 ~ 255
+	TIMSK = 0x01; //오버플로 인터럽트
 }
 
 void MENU(void)
@@ -102,8 +164,32 @@ void MENU(void)
 	}
 }
 
+void OFF_FND()
+{
+	PORTF = 0x08;
+	PORTE = 0xFF;
+	_delay_ms(1);
+	
+	PORTF = 0x04;
+	PORTE = 0xFF;
+	_delay_ms(1);
+	
+	PORTF = 0x02;
+	PORTE = 0xFF;
+	_delay_ms(1);
+	
+	PORTF = 0x02;
+	PORTE = 0xFF;
+	_delay_ms(1);
+	
+	TCNT0 = 0x04;
+	
+	fndChk = -1;
+	min = 0, sec = 0, ms = 0;
+}
 void PIANO_RECORD(void)
 {
+	sei();
 	unsigned char message[] = "Recording...";
 	unsigned char message2[] = "COMPLETE!";
 	int mode = 1;
@@ -120,6 +206,10 @@ void PIANO_RECORD(void)
 		if(!(PINC&0x40)) // record complete
 		{
 			mode = 0;
+			cli();	//인터럽트 종료
+			OFF_FND();//fnd 끄기, 인터럽트 초기화
+			PORTB = 0x00; //led off
+			
 			COMMAND(ALLCLR);
 			MOVE(1, 5);
 			STRING(message2, 9);
@@ -162,7 +252,7 @@ void PIANO_RECORD(void)
 			recordTime[Cnt] = _time;
 			_time = 0;
 		}
-		else if(!(PINC&0x04)) //check do time
+		else if(!(PINC&0x04)) //check mi time
 		{
 			recordWhat[Cnt++] = 3;
 			
@@ -179,7 +269,7 @@ void PIANO_RECORD(void)
 			recordTime[Cnt] = _time;
 			_time = 0;
 		}
-		else if(!(PINC&0x08)) //check do time
+		else if(!(PINC&0x08)) //check pa time
 		{
 			recordWhat[Cnt++] = 4;
 			
@@ -196,7 +286,7 @@ void PIANO_RECORD(void)
 			recordTime[Cnt] = _time;
 			_time = 0;
 		}
-		else if(!(PINC&0x10)) //check do time
+		else if(!(PINC&0x10)) //check sol time
 		{
 			recordWhat[Cnt++] = 5;
 			
@@ -213,7 +303,7 @@ void PIANO_RECORD(void)
 			recordTime[Cnt] = _time;
 			_time = 0;
 		}
-		else if(PINC == 0b01111111)
+		else if(PINC == 0b01111111) //check none time
 		{
 			recordWhat[Cnt++] = 0;
 			
@@ -227,9 +317,10 @@ void PIANO_RECORD(void)
 			_time = 0;
 		}
 	}
+
 	maxCnt = Cnt;
 	maxCnt = Cnt;
-	PORTB = 0x00;
+	
 	INTRODUCE(2);
 }
 
@@ -490,10 +581,14 @@ void PIANO_PLAY(void)
 }
 void IO_SETTING(void)
 {
-	DDRD = 0xFF; //LCD lines output
-	DDRC = 0x00; //SW lines input
-	DDRB = 0xFF; //LED lines output
-	PORTC = 0x00;
+	DDRD = 0xFF; //LCD PORT output
+	DDRC = 0x00; //SWITCH PORT input
+	DDRB = 0xFF; //LED PORT output
+	DDRE = 0xFF; //FND PORT output
+	DDRF = 0xFF; //FND COM PORT output
+	
+	PORTC = 0x00; //switch init
+	PORTE = 0xFF; //FND init
 	int iCnt;
 	unsigned int pName[] =
 	{
@@ -504,8 +599,6 @@ void IO_SETTING(void)
 	for(iCnt=0;iCnt<8;iCnt++)
 		DATA(pName[iCnt]);
 }
-
-
 
 
 
