@@ -33,6 +33,7 @@ int main()
 	}
 	
 	printf("\n*학생 정보(역순)*\n");
+	
 	ptr = head;
 	while(ptr != NULL) {
 		count++;
