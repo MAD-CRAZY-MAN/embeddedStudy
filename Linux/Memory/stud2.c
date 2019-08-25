@@ -34,7 +34,7 @@ int main()
 	
 	printf("\n*학생 정보(역순)*\n");
 	
-	ptr = head;
+	//	ptr = head;
 	while(ptr != NULL) {
 		count++;
 		printf("학번: %d 이름: %s \n", ptr->id, ptr->name);
