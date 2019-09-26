@@ -33,4 +33,4 @@ void alarmHandler()
 {
 	printf("[알람]자식 프로세스 %d 시간 초과\n", pid);
 	kill(pid, SIGINT); //명령어 실행 중인 자신 프로세스 종료
-}
+ }
