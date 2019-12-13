@@ -1,3 +1,10 @@
+﻿/*
+ * FND_CHAR.h
+ *
+ * Created: 2019-11-20 오전 11:12:48
+ *  Author: tlgus
+ */ 
+
 #ifndef FND_CHAR_H_
 #define FND_CHAR_H_
 // _CA_, __CC
